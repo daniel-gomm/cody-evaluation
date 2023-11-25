@@ -16,7 +16,7 @@ def analyse_results(df, name):
     oracle_call_duration = df['oracle_call_duration'].mean() / 1000000000
     explanation_duration = df['explanation_duration'].mean() / 1000000000
     
-    sparsity_list = [np.min(sparsity_values) - 0.0001]
+    sparsity_list = [np.min(sparsity_values) - 0.00001]
     explanation_rate_list = [0.0]
     found_explanations = 0
     found_sparsities = []
@@ -25,7 +25,7 @@ def analyse_results(df, name):
         found_explanations += num_examples_with_sparsity
         explanation_rate_list.append(found_explanations/200.0)
         found_sparsities += [value] * num_examples_with_sparsity
-        sparsity_list.append(np.mean(found_sparsities))
+        sparsity_list.append(value)
     sparsity_list.append(1.0)
     explanation_rate_list.append(explanation_rate_list[-1])
     

@@ -1,0 +1,148 @@
+% This file was created with tikzplotlib v0.10.1.
+\begin{tikzpicture}
+
+\definecolor{black25}{RGB}{25,25,25}
+\definecolor{crimson2143940}{RGB}{214,39,40}
+\definecolor{darkorange25512714}{RGB}{255,127,14}
+\definecolor{darkslategray38}{RGB}{38,38,38}
+\definecolor{forestgreen4416044}{RGB}{44,160,44}
+\definecolor{lightgray204}{RGB}{204,204,204}
+\definecolor{steelblue31119180}{RGB}{31,119,180}
+
+\begin{axis}[
+axis line style={darkslategray38},
+tick align=outside,
+title={Correct predictions},
+x grid style={lightgray204},
+xlabel=\textcolor{darkslategray38}{sparsity},
+xmajorgrids,
+xmajorticks=false,
+xmin=0, xmax=1,
+xtick style={color=darkslategray38},
+y grid style={lightgray204},
+ylabel=\textcolor{darkslategray38}{fid-},
+ymajorgrids,
+ymajorticks=false,
+ymin=0, ymax=0.45,
+ytick style={color=darkslategray38}
+]
+\addplot [line width=0.48pt, steelblue31119180]
+table {%
+0.015615 0
+0.015625 0.17
+0.03125 0.275
+0.046875 0.325
+0.0625 0.35
+0.078125 0.37
+0.125 0.375
+0.15625 0.38
+0.234375 0.385
+0.640625 0.39
+0.921875 0.4
+1 0.4
+};
+\addplot [line width=0.48pt, darkorange25512714]
+table {%
+0.015615 0
+0.015625 0.17
+0.03125 0.275
+0.046875 0.31
+0.0625 0.32
+0.078125 0.33
+0.109375 0.34
+0.140625 0.345
+0.15625 0.355
+0.171875 0.36
+0.265625 0.365
+0.28125 0.37
+0.296875 0.375
+0.921875 0.38
+0.953125 0.385
+1 0.385
+};
+\addplot [line width=0.48pt, forestgreen4416044]
+table {%
+0.015615 0
+0.015625 0.17
+0.03125 0.215
+0.046875 0.25
+0.0625 0.255
+0.078125 0.28
+0.09375 0.29
+0.125 0.295
+0.171875 0.305
+0.203125 0.31
+0.328125 0.315
+1 0.315
+};
+\addplot [line width=0.48pt, crimson2143940]
+table {%
+0.015615 0
+0.015625 0.17
+0.03125 0.185
+0.046875 0.195
+0.1875 0.2
+0.734375 0.205
+0.890625 0.21
+0.921875 0.215
+1 0.215
+};
+\addplot [line width=0.48pt, steelblue31119180, dashed]
+table {%
+0.015615 0
+0.015625 0.175
+0.03125 0.235
+0.046875 0.255
+0.0625 0.265
+0.078125 0.275
+0.109375 0.28
+0.125 0.285
+1 0.285
+};
+\addplot [line width=0.48pt, darkorange25512714, dashed]
+table {%
+0.015615 0
+0.015625 0.17
+0.03125 0.255
+0.046875 0.3
+0.0625 0.35
+0.078125 0.37
+0.09375 0.385
+0.109375 0.395
+0.125 0.41
+0.140625 0.415
+0.15625 0.42
+0.1875 0.425
+1 0.425
+};
+\addplot [line width=0.48pt, forestgreen4416044, dashed]
+table {%
+0.015615 0
+0.015625 0.015
+0.03125 0.02
+0.046875 0.04
+0.0625 0.05
+1 0.05
+};
+\addplot [line width=0.48pt, crimson2143940, dashed]
+table {%
+0.015615 0
+0.015625 0.005
+0.03125 0.01
+1 0.01
+};
+\addplot [line width=0.48pt, black25, dash pattern=on 1pt off 3pt on 3pt off 3pt]
+table {%
+0.0333233333333333 0
+0.0333333333333333 0.01
+0.1 0.015
+0.2 0.025
+0.266666666666667 0.03
+0.466666666666667 0.035
+0.6 0.04
+0.7 0.045
+1 0.045
+};
+\end{axis}
+
+\end{tikzpicture}
