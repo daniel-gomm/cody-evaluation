@@ -9,14 +9,20 @@ def analyse_results(df, name):
     for cf_example_event_ids, candidate_size in zip(cf_explanations['cf_example_event_ids'].to_numpy(), cf_explanations['candidate_size'].to_numpy()):
         sparsity_values.append((len(cf_example_event_ids)/candidate_size))
         sparsity += (len(cf_example_event_ids)/candidate_size)
-    sparsity = sparsity / len(cf_explanations)
+    if len(cf_explanations) > 0:
+        sparsity = sparsity / len(cf_explanations)
+    else:
+        sparsity = 0
     
     duration = df['total_duration'].mean() / 1000000000
     init_duration = df['init_duration'].mean() / 1000000000
     oracle_call_duration = df['oracle_call_duration'].mean() / 1000000000
     explanation_duration = df['explanation_duration'].mean() / 1000000000
-    
-    sparsity_list = [np.min(sparsity_values) - 0.00001]
+
+    if len(sparsity_values) > 0:
+        sparsity_list = [np.min(sparsity_values) - 0.00001]
+    else:
+        sparsity_list = [0.0]
     explanation_rate_list = [0.0]
     found_explanations = 0
     found_sparsities = []
