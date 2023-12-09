@@ -2,86 +2,149 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+from sklearn.metrics import auc
 
 def analyse_results(df, name):
-    cf_explanations = df[df['achieves_counterfactual_explanation'] == True]
-    cf_explanation_rate = len(cf_explanations)/len(df)
-    sparsity_values = []
-    sparsity = 0.0
-    for cf_example_event_ids, candidate_size in zip(cf_explanations['cf_example_event_ids'].to_numpy(), cf_explanations['candidate_size'].to_numpy()):
-        sparsity_values.append((len(cf_example_event_ids)/candidate_size))
-        sparsity += (len(cf_example_event_ids)/candidate_size)
-    if len(cf_explanations) > 0:
-        sparsity = sparsity / len(cf_explanations)
+    df['achieves_sufficient_explanation'] = df['original_prediction'] * df['prediction_explanation_events_only'] > 0
+    
+    necessary_explanations = df[df['achieves_counterfactual_explanation'] == True]
+    sufficient_explanations = df[df['achieves_sufficient_explanation'] == True]
+    necessary_explanation_rate = len(necessary_explanations)/len(df)
+    sufficient_explanation_rate = len(sufficient_explanations)/len(df)
+    sparsity_values_fid_plus = []
+    sparsity_necessary = 0.0
+    for necessary_example_event_ids, candidate_size in zip(necessary_explanations['cf_example_event_ids'].to_numpy(), necessary_explanations['candidate_size'].to_numpy()):
+        sparsity_values_fid_plus.append((len(necessary_example_event_ids)/candidate_size))
+        sparsity_necessary += (len(necessary_example_event_ids)/candidate_size)
+    if len(necessary_explanations) > 0:
+        sparsity_necessary = sparsity_necessary / len(necessary_explanations)
     else:
-        sparsity = 0
+        sparsity_necessary = 0
     
     duration = df['total_duration'].mean() / 1000000000
     init_duration = df['init_duration'].mean() / 1000000000
     oracle_call_duration = df['oracle_call_duration'].mean() / 1000000000
     explanation_duration = df['explanation_duration'].mean() / 1000000000
 
-    if len(sparsity_values) > 0:
-        sparsity_list = [np.min(sparsity_values) - 0.00001]
+    if len(sparsity_values_fid_plus) > 0:
+        sparsity_list_fid_plus = [np.min(sparsity_values_fid_plus) - 0.00001]
     else:
-        sparsity_list = [0.0]
-    explanation_rate_list = [0.0]
+        sparsity_list_fid_plus = [0.0]
+    necessary_rate_list = [0.0]
     found_explanations = 0
     found_sparsities = []
-    for value in sorted(set(sparsity_values), reverse=False):
-        num_examples_with_sparsity = len([val for val in sparsity_values if val == value])
+    for value in sorted(set(sparsity_values_fid_plus), reverse=False):
+        num_examples_with_sparsity = len([val for val in sparsity_values_fid_plus if val == value])
         found_explanations += num_examples_with_sparsity
-        explanation_rate_list.append(found_explanations/200.0)
+        necessary_rate_list.append(found_explanations/200.0)
         found_sparsities += [value] * num_examples_with_sparsity
-        sparsity_list.append(value)
-    sparsity_list.append(1.0)
-    explanation_rate_list.append(explanation_rate_list[-1])
+        sparsity_list_fid_plus.append(value)
+    sparsity_list_fid_plus.append(1.0)
+    necessary_rate_list.append(necessary_rate_list[-1])
+
+    auc_fid_plus = auc(sparsity_list_fid_plus, necessary_rate_list)
+
     
-    df['achieves_sufficient_explanation'] = df['original_prediction'] * df['prediction_explanation_events_only'] > 0
+
+
+
+    sparsity_values_fid_min = []
+    sparsity_sufficient = 0.0
+    for sufficient_example_event_ids, candidate_size in zip(sufficient_explanations['cf_example_event_ids'].to_numpy(), sufficient_explanations['candidate_size'].to_numpy()):
+        sparsity_values_fid_min.append((len(sufficient_example_event_ids)/candidate_size))
+        sparsity_sufficient += (len(sufficient_example_event_ids)/candidate_size)
+    if len(sufficient_explanations) > 0:
+        sparsity_sufficient = sparsity_sufficient / len(sufficient_explanations)
+    else:
+        sparsity_sufficient = 0
     
-    fidelity_plus = df['achieves_sufficient_explanation'].sum() / len(df)
+
+    if len(sparsity_values_fid_min) > 0:
+        sparsity_list_fid_min = [np.min(sparsity_values_fid_min) - 0.00001]
+    else:
+        sparsity_list_fid_min = [0.0]
+    sufficient_rate_list = [0.0]
+    found_explanations = 0
+    found_sparsities = []
+    for value in sorted(set(sparsity_values_fid_min), reverse=False):
+        num_examples_with_sparsity = len([val for val in sparsity_values_fid_min if val == value])
+        found_explanations += num_examples_with_sparsity
+        sufficient_rate_list.append(found_explanations/200.0)
+        found_sparsities += [value] * num_examples_with_sparsity
+        sparsity_list_fid_min.append(value)
+    sparsity_list_fid_min.append(1.0)
+    sufficient_rate_list.append(sufficient_rate_list[-1])
+
+    auc_fid_min = auc(sparsity_list_fid_min, sufficient_rate_list)
     
-    fidelity_minus = df['achieves_counterfactual_explanation'].sum() / len(df)
+    fidelity_min = df['achieves_sufficient_explanation'].sum() / len(df)
+    
+    fidelity_plus = df['achieves_counterfactual_explanation'].sum() / len(df)
     
     return {
         'Selection strategy': name,
-        'explanation rate': cf_explanation_rate,
-        'sparsity': sparsity,
+        'necessary explanation rate': necessary_explanation_rate,
+        'sufficient explanation rate': sufficient_explanation_rate,
+        'sparsity_necessary': sparsity_necessary,
+        'sparsity_sufficient': sparsity_sufficient,
         'avg_oracle_calls': df['oracle_calls'].sum() / len(df),
-        'avg_oracle_calls_cf': cf_explanations['oracle_calls'].sum() / len(cf_explanations),
+        'avg_oracle_calls_cf': necessary_explanations['oracle_calls'].sum() / len(necessary_explanations),
         'Duration': duration,
         'initialisation (s)': init_duration,
         'oracle calls (s)': oracle_call_duration,
         'explanation (s)': explanation_duration,
-        'sparsity_values': sparsity_values,
-        'sparsity_list': sparsity_list,
-        'explanation_rate_list': explanation_rate_list,
+        'sparsity_values_fid_plus': sparsity_values_fid_plus,
+        'sparsity_list_fid_plus': sparsity_list_fid_plus,
+        'sparsity_values_fid_min': sparsity_values_fid_min,
+        'sparsity_list_fid_min': sparsity_list_fid_min,
+        'AUFC_plus': auc_fid_plus,
+        'AUFC_min': auc_fid_min,
+        'necessary_rate_list': necessary_rate_list,
+        'sufficient_rate_list': sufficient_rate_list,
+        'fidelity_minus': fidelity_min,
         'fidelity_plus': fidelity_plus,
-        'fidelity_minus': fidelity_minus,
         'sparsity_all': (df['cf_example_event_ids'].apply(lambda x: len(x)) / df['candidate_size']).mean(),
-        'characterization_score': 1/((0.5/fidelity_plus)+(0.5/fidelity_minus))
+        'characterization_score': 1/((0.5/fidelity_plus)+(0.5/fidelity_min))
     }
 
 
-def expand_sparsity_explanation_rate(df: pd.DataFrame):
+def expand_sparsity_explanation_rate_necessary(df: pd.DataFrame):
     data = []
     for index, row in df.iterrows():
-        for sparsity, explanation_rate in zip(row['sparsity_list'], row['explanation_rate_list']):
+        for sparsity_necessary, explanation_rate in zip(row['sparsity_list_fid_plus'], row['necessary_rate_list']):
             data.append({
-                'sparsity': sparsity,
-                'explanation rate': explanation_rate,
+                'sparsity_necessary': sparsity_necessary,
+                'necessary explanation rate': explanation_rate,
+                'Explainer': row['Explainer'],
+                'Selection strategy': row['Selection strategy']
+            })
+    return pd.DataFrame(data)
+
+def expand_sparsity_explanation_rate_sufficient(df: pd.DataFrame):
+    data = []
+    for index, row in df.iterrows():
+        for sparsity_sufficient, explanation_rate in zip(row['sparsity_list_fid_min'], row['sufficient_rate_list']):
+            data.append({
+                'sparsity_sufficient': sparsity_sufficient,
+                'sufficient explanation rate': explanation_rate,
                 'Explainer': row['Explainer'],
                 'Selection strategy': row['Selection strategy']
             })
     return pd.DataFrame(data)
 
 
-def calculate_similarity_scores(results, results_other):
+def calculate_similarity_scores(results, results_other, necessary_explanations_only:bool = False):
     jaccard_similarities = []
     precisions = []
     recalls = []
     f1s = []
-    aymaras = 0
+    subset_accuracies = 0
+
+    if necessary_explanations_only:
+        results = results[np.isin(results['explained_event_id'], results_other['explained_event_id'])].reset_index(drop=True)
+        results_other = results_other[np.isin(results_other['explained_event_id'], results['explained_event_id'])].reset_index(drop=True)
+        results = results[results['achieves_counterfactual_explanation'] | results_other['achieves_counterfactual_explanation']].reset_index(drop=True)
+    
     for index, row in results.iterrows():
         try:
             other_row = results_other[results_other['explained_event_id'] == row['explained_event_id']].iloc[0]
@@ -93,7 +156,7 @@ def calculate_similarity_scores(results, results_other):
             false_negatives = np.sum(~np.isin(b, a))
 
             if false_positives == 0:
-                aymaras += 1
+                subset_accuracies += 1
             
             epsilon = 1e-9 # Use epsilon as a smoothing factor to mitigate cases where we would otherwise divide by zero
 
@@ -110,7 +173,7 @@ def calculate_similarity_scores(results, results_other):
             jaccard_similarities.append(jaccard_similarity)
         except:
             pass
-    return np.average(precisions), np.average(recalls), np.average(f1s), np.average(jaccard_similarities), aymaras / len(results)
+    return np.average(precisions), np.average(recalls), np.average(f1s), np.average(jaccard_similarities), subset_accuracies / len(results)
 
 
 # From https://matplotlib.org/stable/gallery/images_contours_and_fields/image_annotated_heatmap.html
